@@ -13,11 +13,14 @@
     "@radix-ui/colors": "^3.0.0",
     "astro": "^5.5.5",
     "bezier-easing": "^2.1.0",
+    "canvas-text-wrapper": "^0.10.2",
     "colorjs.io": "^0.5.2",
+    "modern-normalize": "^3.0.1",
     "sass": "^1.63.6",
     "satori": "^0.12.1",
     "satori-html": "^0.3.2",
-    "sharp": "^0.33.5"
+    "sharp": "^0.33.5",
+    "utopia-core-scss": "^1.2.1"
   },
   "devDependencies": {
     "wrangler": "^3.92.0"
