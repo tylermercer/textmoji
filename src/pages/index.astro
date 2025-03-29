@@ -6,34 +6,33 @@ import Layout from '../layouts/Base.astro';
     title="Textmoji Generator"
     description="Generate a textmoji with a custom text, text color, background color, and border style."
     ogImagePath='/home'>
-  <main class="u-guttered">
+  <main class="u-guttered l-column l-space-l">
     <h1>Textmoji Generator</h1>
-    <form id="textmojiForm">
-      <div class="form-group">
-        <label for="text">Text</label>
-        <input type="text" id="text" name="text" required maxlength="20" value="This is a test" />
-      </div>
-      
-      <div class="form-group">
-        <label for="textColor">Text Color</label>
-        <input type="color" id="textColor" name="textColor" value="#ffffff" />
-      </div>
-
-      <div class="form-group">
-        <label for="bgColor">Background Color</label>
-        <input type="color" id="bgColor" name="bgColor" value="#000000" />
-      </div>
-
-      <div class="form-group">
-        <label for="borderStyle">Border Style</label>
-        <select id="borderStyle" name="borderStyle">
-          <option value="none">None</option>
-          <option value="topBottom">Top and Bottom</option>
-          <option value="all">All Sides</option>
-        </select>
+    <form id="textmojiForm" class="l-column l-space-s">
+        <label>
+          Text
+          <input type="text" id="text" name="text" required value="text" />
+        </label>
+      <div class="colors l-switcher">
+        <label>
+          Text Color
+          <input type="color" id="textColor" name="textColor" value="#ffffff" />
+        </label>
+  
+          <label>
+            Background Color
+            <input type="color" id="bgColor" name="bgColor" value="#000000" />
+          </label>
       </div>
 
-      <button type="submit">Generate Textmoji</button>
+        <label>
+          Border Style
+          <select id="borderStyle" name="borderStyle">
+            <option value="none">None</option>
+            <option value="topBottom">Top and Bottom</option>
+            <option value="all">All Sides</option>
+          </select>
+        </label>
     </form>
 
     <div class="preview">
@@ -44,35 +43,25 @@ import Layout from '../layouts/Base.astro';
 </Layout>
 
 <style>
+    .colors {
+      --l-switcher-threshold: 10rem;
+    }
     canvas {
         border: 1px solid white;
+    }
+    .preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 </style>
 
 <script>
+  import { CanvasTextWrapper } from "canvas-text-wrapper";
   const form = document.getElementById('textmojiForm') as HTMLFormElement;
   const canvas = document.getElementById('textmojiCanvas') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   const downloadLink = document.getElementById('downloadLink') as HTMLAnchorElement;
-
-  function getLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
-    var words = text.split(" ");
-    var lines = [];
-    var currentLine = words[0];
-
-    for (var i = 1; i < words.length; i++) {
-        var word = words[i];
-        var width = ctx.measureText(currentLine + " " + word).width;
-        if (width < maxWidth) {
-            currentLine += " " + word;
-        } else {
-            lines.push(currentLine);
-            currentLine = word;
-        }
-    }
-    lines.push(currentLine);
-    return lines;
-}
 
   function generateTextmoji(
     text: string,
@@ -98,27 +87,18 @@ import Layout from '../layouts/Base.astro';
     } else if (borderStyle === 'all') {
       ctx.strokeRect(2, 2, 120, 120);
     }
-
+    
     // Draw text
     ctx.fillStyle = textColor;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.textRendering = 'geometricPrecision';
-    ctx.font = `bold 12px sans-serif`;
-    
-    // Adjust font size based on text length
-    const lines = getLines(ctx, text, 32);
-    const maxlength = lines.reduce((max, line) => Math.max(max, line.length), 0);
-    const fontSize = Math.round(200 / maxlength);
-
-
-    ctx.font = `bold ${fontSize}px sans-serif`;
-    
-    const startY = fontSize;// - (lines.length * fontSize) / 2;
-    console.log({ startY, fontSize, lines });
-    lines.forEach((line, index) => {
-      ctx.fillText(line, 64, startY + (index * fontSize));
-    })
+    ctx.textRendering = "geometricPrecision";
+    CanvasTextWrapper(canvas, text, {
+      textAlign: "center",
+      verticalAlign: "middle",
+      sizeToFill: true,
+      paddingX: 6 + (borderStyle === 'all' ? 6 : 0),
+      paddingY: 6 + (borderStyle !== 'none' ? 6 : 0),
+      font: "bold 64px Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif",
+    });
 
     // Update download link
     const dataUrl = canvas.toDataURL('image/png');
@@ -128,8 +108,7 @@ import Layout from '../layouts/Base.astro';
     downloadLink.textContent = 'Download Textmoji';
   }
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
+  const update = () => {
     const formData = new FormData(form);
     
     generateTextmoji(
@@ -138,8 +117,12 @@ import Layout from '../layouts/Base.astro';
       formData.get('bgColor') as string,
       formData.get('borderStyle') as 'none' | 'topBottom' | 'all'
     );
+  };
+
+  form.addEventListener('input', (e) => {
+    update();
   });
 
   // Generate initial preview
-  generateTextmoji('This', '#ffffff', '#000000', 'none');
+  generateTextmoji('text', '#ffffff', '#000000', 'none');
 </script>
