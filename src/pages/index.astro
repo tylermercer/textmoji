@@ -1,11 +1,145 @@
 ---
-import Welcome from '@components/Welcome.astro';
-import Layout from '@layouts/Base.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Layout from '../layouts/Base.astro';
 ---
 
-<Layout>
-	<Welcome />
+<Layout
+    title="Textmoji Generator"
+    description="Generate a textmoji with a custom text, text color, background color, and border style."
+    ogImagePath='/home'>
+  <main class="u-guttered">
+    <h1>Textmoji Generator</h1>
+    <form id="textmojiForm">
+      <div class="form-group">
+        <label for="text">Text</label>
+        <input type="text" id="text" name="text" required maxlength="20" value="This is a test" />
+      </div>
+      
+      <div class="form-group">
+        <label for="textColor">Text Color</label>
+        <input type="color" id="textColor" name="textColor" value="#ffffff" />
+      </div>
+
+      <div class="form-group">
+        <label for="bgColor">Background Color</label>
+        <input type="color" id="bgColor" name="bgColor" value="#000000" />
+      </div>
+
+      <div class="form-group">
+        <label for="borderStyle">Border Style</label>
+        <select id="borderStyle" name="borderStyle">
+          <option value="none">None</option>
+          <option value="topBottom">Top and Bottom</option>
+          <option value="all">All Sides</option>
+        </select>
+      </div>
+
+      <button type="submit">Generate Textmoji</button>
+    </form>
+
+    <div class="preview">
+      <canvas id="textmojiCanvas" width="128" height="128"></canvas>
+      <a id="downloadLink" download style="display: none;">Download Textmoji</a>
+    </div>
+  </main>
 </Layout>
+
+<style>
+    canvas {
+        border: 1px solid white;
+    }
+</style>
+
+<script>
+  const form = document.getElementById('textmojiForm') as HTMLFormElement;
+  const canvas = document.getElementById('textmojiCanvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+  const downloadLink = document.getElementById('downloadLink') as HTMLAnchorElement;
+
+  function getLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
+    var words = text.split(" ");
+    var lines = [];
+    var currentLine = words[0];
+
+    for (var i = 1; i < words.length; i++) {
+        var word = words[i];
+        var width = ctx.measureText(currentLine + " " + word).width;
+        if (width < maxWidth) {
+            currentLine += " " + word;
+        } else {
+            lines.push(currentLine);
+            currentLine = word;
+        }
+    }
+    lines.push(currentLine);
+    return lines;
+}
+
+  function generateTextmoji(
+    text: string,
+    textColor: string,
+    bgColor: string,
+    borderStyle: 'none' | 'topBottom' | 'all'
+  ) {
+    // Clear canvas
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, 128, 128);
+
+    // Draw border if needed
+    ctx.strokeStyle = textColor;
+    ctx.lineWidth = 12;
+    
+    if (borderStyle === 'topBottom') {
+      ctx.beginPath();
+      ctx.moveTo(0, 2);
+      ctx.lineTo(128, 2);
+      ctx.moveTo(0, 126);
+      ctx.lineTo(128, 126);
+      ctx.stroke();
+    } else if (borderStyle === 'all') {
+      ctx.strokeRect(2, 2, 120, 120);
+    }
+
+    // Draw text
+    ctx.fillStyle = textColor;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.textRendering = 'geometricPrecision';
+    ctx.font = `bold 12px sans-serif`;
+    
+    // Adjust font size based on text length
+    const lines = getLines(ctx, text, 32);
+    const maxlength = lines.reduce((max, line) => Math.max(max, line.length), 0);
+    const fontSize = Math.round(200 / maxlength);
+
+
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    
+    const startY = fontSize;// - (lines.length * fontSize) / 2;
+    console.log({ startY, fontSize, lines });
+    lines.forEach((line, index) => {
+      ctx.fillText(line, 64, startY + (index * fontSize));
+    })
+
+    // Update download link
+    const dataUrl = canvas.toDataURL('image/png');
+    downloadLink.href = dataUrl;
+    downloadLink.download = `${text.toLowerCase().replace(/\s+/g, '-')}.png`;
+    downloadLink.style.display = 'inline-block';
+    downloadLink.textContent = 'Download Textmoji';
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    
+    generateTextmoji(
+      formData.get('text') as string,
+      formData.get('textColor') as string,
+      formData.get('bgColor') as string,
+      formData.get('borderStyle') as 'none' | 'topBottom' | 'all'
+    );
+  });
+
+  // Generate initial preview
+  generateTextmoji('This', '#ffffff', '#000000', 'none');
+</script>
