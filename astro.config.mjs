@@ -1,5 +1,4 @@
 // @ts-check
-import cloudflare from "@astrojs/cloudflare";
 import { defineConfig } from 'astro/config';
 import { generateRadixColorsSassFunctions } from "./lib/plugins/sass/radix-ui-colors/generateRadixColorsSassCustomFunction";
 import remarkEmdash from './lib/plugins/remark/emdash.js';
@@ -7,7 +6,6 @@ import rawFonts from './lib/plugins/vite/rawFonts.js';
 
 // https://astro.build/config
 export default defineConfig({
-  adapter: cloudflare(),
   markdown: {
     remarkPlugins: [remarkEmdash],
   },
