@@ -1,11 +1,13 @@
 ---
 import Layout from '../layouts/Base.astro';
+import canvasTextWrapperUrl from "canvas-text-wrapper/canvas-text-wrapper.min.js?url";
 ---
 
 <Layout
     title="Textmoji Generator"
     description="Generate a textmoji with a custom text, text color, background color, and border style.">
-  <main class="u-guttered l-column l-space-l">
+  <script is:inline src={canvasTextWrapperUrl}></script>
+    <main class="u-guttered l-column l-space-l">
     <h1>Textmoji Generator</h1>
     <form id="textmojiForm" class="l-column l-space-s">
         <label>
@@ -59,7 +61,6 @@ import Layout from '../layouts/Base.astro';
 </style>
 
 <script>
-  import { CanvasTextWrapper } from "canvas-text-wrapper";
   const form = document.getElementById('textmojiForm') as HTMLFormElement;
   const canvas = document.getElementById('textmojiCanvas') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -93,7 +94,8 @@ import Layout from '../layouts/Base.astro';
     // Draw text
     ctx.fillStyle = textColor;
     ctx.textRendering = "geometricPrecision";
-    CanvasTextWrapper(canvas, text, {
+
+    window.CanvasTextWrapper(canvas, text, {
       textAlign: "center",
       verticalAlign: "middle",
       sizeToFill: true,
