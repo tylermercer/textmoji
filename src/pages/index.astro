@@ -1,29 +1,71 @@
 ---
-import Layout from '../layouts/Base.astro';
+import Layout from "../layouts/Base.astro";
 ---
 
 <Layout
-    title="Textmoji Generator"
-    description="Generate a textmoji with a custom text, text color, background color, and border style.">
+  title="Textmoji Generator"
+  description="Generate a textmoji with a custom text, text color, background color, and border style."
+>
   <main class="u-guttered l-column l-space-l">
     <h1>Textmoji Generator</h1>
     <form id="textmojiForm" class="l-column l-space-s">
-        <label>
-          Text
-          <input type="text" id="text" name="text" required value="text" />
-        </label>
+      <label>
+        Text
+        <input type="text" id="text" name="text" required value="text" />
+      </label>
+      <details>
+        <summary>Presets</summary>
+        <ul>
+          <li>
+            <a
+              href="?textColor=%23ff3b3b&bgColor=%23ffe600&borderStyle=all&borderColor=%23ff9500"
+              >Bright & Playful</a
+            >
+          </li>
+          <li>
+            <a
+              href="?textColor=%23ffffff&bgColor=%23000000&borderStyle=all&borderColor=%23808080"
+              >Cool & Modern</a
+            >
+          </li>
+          <li>
+            <a
+              href="?textColor=%23ff00ff&bgColor=%23000080&borderStyle=topBottom&borderColor=%2300ffff"
+              >Cyberpunk Neon</a
+            >
+          </li>
+          <li>
+            <a
+              href="?textColor=%23606060&bgColor=%23f0f0f0&borderStyle=none&borderColor=%23d0d0d0"
+              >Minimalist Pastel</a
+            >
+          </li>
+          <li>
+            <a
+              href="?textColor=%23ffcc00&bgColor=%231a1a1a&borderStyle=all&borderColor=%23ff3300"
+              >Retro Arcade</a
+            >
+          </li>
+          <li>
+            <a
+              href="?textColor=%2300f0ff&bgColor=%23142226&borderStyle=topBottom&borderColor=%23009988"
+              >Oceanic</a>
+          </li>
+        </ul>
+      </details>
       <div class="colors l-switcher">
         <label>
           Text Color
-          <input type="color" id="textColor" name="textColor" value="#ffffff" />
+          <input type="color" id="textColor" name="textColor" value="#56f0c2" />
         </label>
-  
-          <label>
-            Background Color
-            <input type="color" id="bgColor" name="bgColor" value="#000000" />
-          </label>
+
+        <label>
+          Background Color
+          <input type="color" id="bgColor" name="bgColor" value="#0b5265" />
+        </label>
       </div>
 
+      <div class="borders l-switcher">
         <label>
           Border Style
           <select id="borderStyle" name="borderStyle">
@@ -32,6 +74,16 @@ import Layout from '../layouts/Base.astro';
             <option value="all">All Sides</option>
           </select>
         </label>
+        <label>
+          Border Color
+          <input
+            type="color"
+            id="borderColor"
+            name="borderColor"
+            value="#56f0c2"
+          />
+        </label>
+      </div>
     </form>
 
     <div class="preview">
@@ -45,51 +97,55 @@ import Layout from '../layouts/Base.astro';
 </Layout>
 
 <style>
-    .colors {
-      --l-switcher-threshold: 10rem;
-    }
-    canvas {
-        border: 1px solid white;
-    }
-    .preview {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+  .colors,
+  .borders {
+    --l-switcher-threshold: 10rem;
+  }
+  canvas {
+    border: 1px solid white;
+  }
+  .preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 </style>
 
 <script>
   import { CanvasTextWrapper } from "canvas-text-wrapper";
-  const form = document.getElementById('textmojiForm') as HTMLFormElement;
-  const canvas = document.getElementById('textmojiCanvas') as HTMLCanvasElement;
-  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-  const downloadLink = document.getElementById('downloadLink') as HTMLAnchorElement;
+  const form = document.getElementById("textmojiForm") as HTMLFormElement;
+  const canvas = document.getElementById("textmojiCanvas") as HTMLCanvasElement;
+  const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+  const downloadLink = document.getElementById(
+    "downloadLink",
+  ) as HTMLAnchorElement;
 
   function generateTextmoji(
     text: string,
     textColor: string,
     bgColor: string,
-    borderStyle: 'none' | 'topBottom' | 'all'
+    borderColor: string,
+    borderStyle: "none" | "topBottom" | "all",
   ) {
     // Clear canvas
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, 128, 128);
 
     // Draw border if needed
-    ctx.strokeStyle = textColor;
+    ctx.strokeStyle = borderColor;
     ctx.lineWidth = 12;
-    
-    if (borderStyle === 'topBottom') {
+
+    if (borderStyle === "topBottom") {
       ctx.beginPath();
       ctx.moveTo(0, 2);
       ctx.lineTo(128, 2);
       ctx.moveTo(0, 126);
       ctx.lineTo(128, 126);
       ctx.stroke();
-    } else if (borderStyle === 'all') {
-      ctx.strokeRect(2, 2, 120, 120);
+    } else if (borderStyle === "all") {
+      ctx.strokeRect(2, 2, 124, 124);
     }
-    
+
     // Draw text
     ctx.fillStyle = textColor;
     ctx.textRendering = "geometricPrecision";
@@ -97,35 +153,85 @@ import Layout from '../layouts/Base.astro';
       textAlign: "center",
       verticalAlign: "middle",
       sizeToFill: true,
-      paddingX: 6 + (borderStyle === 'all' ? 6 : 0),
-      paddingY: 6 + (borderStyle !== 'none' ? 6 : 0),
+      paddingX: 6 + (borderStyle === "all" ? 6 : 0),
+      paddingY: 6 + (borderStyle !== "none" ? 6 : 0),
       font: "bold 64px Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif",
       renderHDPI: false,
     });
 
     // Update download link
-    const dataUrl = canvas.toDataURL('image/png');
+    const dataUrl = canvas.toDataURL("image/png");
     downloadLink.href = dataUrl;
-    downloadLink.download = `${text.toLowerCase().replace(/\s+/g, '-')}.png`;
-    downloadLink.style.display = 'inline-block';
-    downloadLink.textContent = 'Download Textmoji';
+    downloadLink.download = `${text.toLowerCase().replace(/\s+/g, "-")}.png`;
+    downloadLink.style.display = "inline-block";
+    downloadLink.textContent = "Download Textmoji";
   }
 
   const update = () => {
     const formData = new FormData(form);
-    
+
     generateTextmoji(
-      formData.get('text') as string,
-      formData.get('textColor') as string,
-      formData.get('bgColor') as string,
-      formData.get('borderStyle') as 'none' | 'topBottom' | 'all'
+      formData.get("text") as string,
+      formData.get("textColor") as string,
+      formData.get("bgColor") as string,
+      formData.get("borderColor") as string,
+      formData.get("borderStyle") as "none" | "topBottom" | "all",
     );
   };
 
-  form.addEventListener('input', (e) => {
+  form.addEventListener("input", (e) => {
     update();
+    const formData = new FormData(form);
+    formData.delete("text");
+    const search = new URLSearchParams(
+      formData as unknown as Record<string, string>,
+    ).toString();
+    history.replaceState(null, "", `?${search}`);
   });
 
   // Generate initial preview
-  generateTextmoji('text', '#ffffff', '#000000', 'none');
+  const loadFromSearchParams = () => {
+    const search = new URLSearchParams(window.location.search);
+    if (search.has("textColor")) {
+      form
+        .querySelector('input[name="textColor"]')
+        ?.setAttribute("value", search.get("textColor") || "");
+    }
+    if (search.has("bgColor")) {
+      form
+        .querySelector('input[name="bgColor"]')
+        ?.setAttribute("value", search.get("bgColor") || "");
+    }
+    if (search.has("borderColor")) {
+      form
+        .querySelector('input[name="borderColor"]')
+        ?.setAttribute("value", search.get("borderColor") || "");
+    }
+    if (search.has("borderStyle")) {
+      const borderStyle = form
+        .querySelector('select[name="borderStyle"]');
+      if (borderStyle instanceof HTMLSelectElement) {
+        borderStyle.value = search.get("borderStyle") || "none";
+      }
+    }
+  };
+
+  loadFromSearchParams();
+  update();
+
+  // window.addEventListener("pushstate", () => {
+  //   loadFromSearchParams();
+  //   update();
+  // });
+
+  document.addEventListener("click", (e) => {
+    // Use replacestate for preset clicks
+    if (e.target instanceof HTMLAnchorElement) {
+      const search = new URLSearchParams(new URL(e.target.href).search);
+      history.replaceState(null, "", `?${search.toString()}`);
+      loadFromSearchParams();
+      update();
+      e.preventDefault();
+    }
+  });
 </script>

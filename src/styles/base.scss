@@ -236,7 +236,7 @@
     }
 
     input[type=color] {
-        height: 2em;
+        height: calc(1lh + 2.7 * var(--space-2xs));
         padding: 0;
     }
 
