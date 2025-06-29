@@ -19,6 +19,7 @@ export default defineConfig({
         'path',
         'sharp',
         'esbuild',
+        'url', // Added for google-font-metadata dependency
       ].flatMap(id => [id, `node:${id}`]),
     },
     css: {
