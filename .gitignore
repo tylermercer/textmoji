@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # cache folder
 .cache/
+
+# Generated font metadata (local copy)
+src/data/google-fonts-v2.json

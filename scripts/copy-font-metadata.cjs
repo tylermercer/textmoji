@@ -20,9 +20,32 @@ try {
   // Ensure destination directory exists
   fs.mkdirSync(destDir, { recursive: true });
 
-  // Copy the file
-  fs.copyFileSync(sourcePath, destPath);
-  console.log(`Successfully copied ${sourcePath} to ${destPath}`);
+  // Read the source JSON file
+  const fullMetadata = require(sourcePath); // Using require here as it's a .cjs file and source is .json
+
+  const targetFontIds = [
+    'roboto',
+    'open-sans',
+    'lato',
+    'montserrat',
+    'oswald',
+    'inter',
+    'noto-sans',
+    // Add other desired font IDs here
+  ];
+
+  const filteredMetadata = {};
+  for (const fontId of targetFontIds) {
+    if (fullMetadata[fontId]) {
+      filteredMetadata[fontId] = fullMetadata[fontId];
+    } else {
+      console.warn(`Font ID "${fontId}" not found in source metadata. Skipping.`);
+    }
+  }
+
+  // Write the filtered JSON to the destination file
+  fs.writeFileSync(destPath, JSON.stringify(filteredMetadata, null, 2));
+  console.log(`Successfully filtered and wrote metadata for ${Object.keys(filteredMetadata).length} fonts to ${destPath}`);
 
 } catch (error) {
   console.error(`Error copying font metadata: ${error.message}`);
