@@ -1,0 +1,44 @@
+---
+import { APIv2 } from "google-font-metadata";
+
+const fonts = Object.entries(APIv2).map(([id, metadata]) => ({
+  id,
+  family: metadata.family,
+}));
+// Sort fonts by family name
+fonts.sort((a, b) => a.family.localeCompare(b.family));
+
+export interface Props {
+  name?: string;
+  id?: string;
+  initialValue?: string;
+}
+
+const { name = "fontFamily", id = "fontFamily", initialValue } = Astro.props;
+---
+
+<select name={name} id={id}>
+  {fonts.map((font) => (
+    <option value={font.id} selected={initialValue === font.id}>
+      {font.family}
+    </option>
+  ))}
+</select>
+
+<style>
+  select {
+    width: 100%;
+    padding: var(--space-2xs); /* Consistent with other inputs */
+    border: 1px solid var(--gray-7); /* From base.scss */
+    border-radius: 4px; /* Consistent with other inputs */
+    background-color: var(--gray-1); /* From base.scss via body */
+    color: var(--gray-12); /* From base.scss via body */
+    font-size: var(--step-0); /* Consistent with body font-size */
+    /* Inherit font-family from label/body */
+  }
+
+  select:focus {
+    outline: 2px solid var(--gray-8); /* Consistent with other inputs */
+    outline-offset: 1px;
+  }
+</style>

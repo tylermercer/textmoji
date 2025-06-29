@@ -20,7 +20,8 @@
     "satori": "^0.12.1",
     "satori-html": "^0.3.2",
     "sharp": "^0.33.5",
-    "utopia-core-scss": "^1.2.1"
+    "utopia-core-scss": "^1.2.1",
+    "google-font-metadata": "^6.0.3"
   },
   "devDependencies": {
     "wrangler": "^3.92.0"

@@ -1,5 +1,6 @@
 ---
 import Layout from "@layouts/Base.astro";
+import FontPicker from "@components/FontPicker.astro";
 ---
 
 <Layout
@@ -12,6 +13,10 @@ import Layout from "@layouts/Base.astro";
       <label>
         Text
         <input type="text" id="text" name="text" required value="Your text here" />
+      </label>
+      <label>
+        Font Family
+        <FontPicker name="fontFamily" id="fontFamily" />
       </label>
       <details>
         <summary>Presets</summary>
@@ -121,6 +126,8 @@ import Layout from "@layouts/Base.astro";
 
 <script>
   import { CanvasTextWrapper } from "canvas-text-wrapper";
+  import { APIv2 } from "google-font-metadata";
+
   const form = document.getElementById("textmojiForm") as HTMLFormElement;
   const canvas = document.getElementById("textmojiCanvas") as HTMLCanvasElement;
   const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -131,9 +138,10 @@ import Layout from "@layouts/Base.astro";
   function generateTextmoji(
     text: string,
     textColor: string,
-    bgColor: string,
+    bgColor:string,
     borderColor: string,
     borderStyle: "none" | "topBottom" | "all",
+    fontFamily: string = "Inter", // Default font
   ) {
     // Clear canvas
     ctx.fillStyle = bgColor;
@@ -163,20 +171,91 @@ import Layout from "@layouts/Base.astro";
       sizeToFill: true,
       paddingX: 6 + (borderStyle === "all" ? 6 : 0),
       paddingY: 6 + (borderStyle !== "none" ? 6 : 0),
-      font: "bold 64px Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif",
+      font: `bold 64px "${fontFamily}", Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif`,
       renderHDPI: false,
     });
 
     // Update download link
     const dataUrl = canvas.toDataURL("image/png");
     downloadLink.href = dataUrl;
-    downloadLink.download = `${text.toLowerCase().replace(/\s+/g, "-")}.png`;
+    downloadLink.download = `${text.toLowerCase().replace(/\s+/g, "-")}-${fontFamily.toLowerCase().replace(/\s+/g, "-")}.png`;
     downloadLink.style.display = "inline-block";
     downloadLink.textContent = "Download Textmoji";
   }
 
-  const update = () => {
+  async function loadAndApplyFont(fontId: string): Promise<string> {
+    if (!fontId || !APIv2[fontId]) {
+      console.warn(`Font '${fontId}' not found in metadata. Using default Inter.`);
+      // Attempt to load Inter if the requested font isn't found or if fontId is null/empty
+      const defaultFontMetadata = APIv2["inter"];
+      if (!defaultFontMetadata) { // Should not happen if Inter is in APIv2
+         console.error("Default font Inter not found in metadata!");
+         return "Inter"; // Fallback family name
+      }
+      fontId = "inter"; // Use inter's ID
+    }
+
+    const fontMetadata = APIv2[fontId];
+    const family = fontMetadata.family;
+
+    // Check if font is already loaded by FontFace
+    // Convert document.fonts (a FontFaceSet) to an array to use .some()
+    const isFontLoaded = Array.from(document.fonts).some(ff => ff.family === family && ff.status === 'loaded');
+    if (isFontLoaded) {
+      // console.log(`${family} font already loaded.`);
+      return family;
+    }
+
+
+    // Try to find '400' weight, 'normal' style, 'latin' subset
+    let variantUrl: string | undefined;
+    const variants = fontMetadata.variants;
+
+    if (variants["400"]?.normal?.latin?.url.woff2) {
+      variantUrl = variants["400"].normal.latin.url.woff2;
+    } else if (variants["regular"]?.normal?.latin?.url.woff2) { // Some fonts use 'regular' instead of '400'
+      variantUrl = variants["regular"].normal.latin.url.woff2;
+    } else {
+      // Fallback: try to find the first available variant URL (woff2 preferred)
+      const firstWeightKey = Object.keys(variants)[0];
+      if (firstWeightKey) {
+        const firstStyleKey = Object.keys(variants[firstWeightKey])[0];
+        if (firstStyleKey) {
+          const firstSubsetKey = Object.keys(
+            variants[firstWeightKey][firstStyleKey],
+          )[0];
+          if (firstSubsetKey) {
+            const urls =
+              variants[firstWeightKey][firstStyleKey][firstSubsetKey].url;
+            variantUrl = urls.woff2 || urls.woff || urls.truetype;
+          }
+        }
+      }
+    }
+
+    if (!variantUrl) {
+      console.error(`No suitable font variant found for ${family}. Using as-is.`);
+      return family; // Return family name even if not loaded, CSS might find it locally
+    }
+
+    const fontFace = new FontFace(family, `url(${variantUrl})`);
+
+    try {
+      const loadedFont = await fontFace.load();
+      document.fonts.add(loadedFont);
+      // console.log(`${family} font loaded and added.`);
+      return family;
+    } catch (err) {
+      console.error(`Failed to load font ${family}:`, err);
+      return family; // Return family name even if loading failed
+    }
+  }
+
+  const update = async () => {
     const formData = new FormData(form);
+    const selectedFontId = formData.get("fontFamily") as string || "inter"; // Default to Inter
+
+    const fontFamilyToUse = await loadAndApplyFont(selectedFontId);
 
     generateTextmoji(
       formData.get("text") as string,
@@ -184,56 +263,68 @@ import Layout from "@layouts/Base.astro";
       formData.get("bgColor") as string,
       formData.get("borderColor") as string,
       formData.get("borderStyle") as "none" | "topBottom" | "all",
+      fontFamilyToUse,
     );
   };
 
-  form.addEventListener("input", (e) => {
-    update();
+  form.addEventListener("input", async () => { // Removed 'e' as it's not used
+    await update();
     const formData = new FormData(form);
-    formData.delete("text");
+    formData.delete("text"); // Text is not part of the shareable URL params
     const search = new URLSearchParams(
       formData as unknown as Record<string, string>,
     ).toString();
     history.replaceState(null, "", `?${search}`);
   });
 
-  // Generate initial preview
-  const loadFromSearchParams = () => {
+  const loadFromSearchParams = async () => {
     const search = new URLSearchParams(window.location.search);
-    if (search.has("textColor")) {
-      form
-        .querySelector('input[name="textColor"]')
-        ?.setAttribute("value", search.get("textColor") || "");
-    }
-    if (search.has("bgColor")) {
-      form
-        .querySelector('input[name="bgColor"]')
-        ?.setAttribute("value", search.get("bgColor") || "");
-    }
-    if (search.has("borderColor")) {
-      form
-        .querySelector('input[name="borderColor"]')
-        ?.setAttribute("value", search.get("borderColor") || "");
-    }
-    if (search.has("borderStyle")) {
-      const borderStyle = form.querySelector('select[name="borderStyle"]');
-      if (borderStyle instanceof HTMLSelectElement) {
-        borderStyle.value = search.get("borderStyle") || "none";
+    const paramsToSet: { [key: string]: string | null } = {
+      textColor: search.get("textColor"),
+      bgColor: search.get("bgColor"),
+      borderColor: search.get("borderColor"),
+      borderStyle: search.get("borderStyle"),
+      // fontFamily handled separately below for default logic
+    };
+
+    for (const key in paramsToSet) {
+      if (paramsToSet[key] !== null) {
+        const input = form.querySelector(`[name="${key}"]`);
+        if (input) {
+          (input as HTMLInputElement | HTMLSelectElement).value = paramsToSet[key]!;
+        }
       }
+    }
+
+    const fontPickerEl = form.querySelector('select[name="fontFamily"]') as HTMLSelectElement | null;
+    const initialFontIdFromUrl = search.get("fontFamily");
+
+    if (initialFontIdFromUrl && APIv2[initialFontIdFromUrl]) { // Check if font exists in APIv2
+      if (fontPickerEl) fontPickerEl.value = initialFontIdFromUrl;
+      await loadAndApplyFont(initialFontIdFromUrl); // Ensure it's loaded
+    } else {
+      if (fontPickerEl) fontPickerEl.value = "inter"; // Set visual default to Inter
+      // update() will then call loadAndApplyFont("inter") if selectedFontId becomes "inter"
+      // or if the first option is chosen and loadAndApplyFont defaults.
+      // Explicitly loading inter here if it's not in URL ensures it's ready if needed by update()
+      await loadAndApplyFont("inter");
     }
   };
 
-  loadFromSearchParams();
-  update();
+  // Initialize page
+  (async () => {
+    await loadFromSearchParams();
+    await update();
+  })();
 
-  document.addEventListener("click", (e) => {
+  document.addEventListener("click", async (e) => {
     // Use replacestate for preset clicks
     if (e.target instanceof HTMLAnchorElement && e.target.dataset.preset) {
+      e.preventDefault(); // Prevent navigation
       const search = new URLSearchParams(new URL(e.target.href).search);
       history.replaceState(null, "", `?${search.toString()}`);
-      loadFromSearchParams();
-      update();
-      e.preventDefault();
+      await loadFromSearchParams(); // Reload all params from the new URL
+      await update(); // Re-generate textmoji
     }
   });
 </script>
