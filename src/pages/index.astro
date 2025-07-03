@@ -185,24 +185,23 @@ import FontPicker from "@components/FontPicker.astro";
 
   async function loadAndApplyFont(fontId: string): Promise<string> {
     if (!fontId || !APIv2[fontId]) {
-      console.warn(`Font '${fontId}' not found in metadata. Using default Inter.`);
-      // Attempt to load Inter if the requested font isn't found or if fontId is null/empty
-      const defaultFontMetadata = APIv2["inter"];
+      console.warn(`Font '${fontId}' not found in metadata. Using default Oswald.`);
+      // Attempt to load Oswald if the requested font isn't found or if fontId is null/empty
+      const defaultFontMetadata = APIv2["oswald"];
       if (!defaultFontMetadata) { // Should not happen if Inter is in APIv2
-         console.error("Default font Inter not found in metadata!");
-         return "Inter"; // Fallback family name
+         console.error("Default font Oswald not found in metadata!");
+         return "Oswald"; // Fallback family name
       }
-      fontId = "inter"; // Use inter's ID
+      fontId = "oswald"; // Use Oswald's ID
     }
 
     const fontMetadata = APIv2[fontId];
     const family = fontMetadata.family;
 
     // Check if font is already loaded by FontFace
-    // Convert document.fonts (a FontFaceSet) to an array to use .some()
     const isFontLoaded = Array.from(document.fonts).some(ff => ff.family === family && ff.status === 'loaded');
     if (isFontLoaded) {
-      // console.log(`${family} font already loaded.`);
+      console.log(`${family} font already loaded.`);
       return family;
     }
 
@@ -243,7 +242,7 @@ import FontPicker from "@components/FontPicker.astro";
     try {
       const loadedFont = await fontFace.load();
       document.fonts.add(loadedFont);
-      // console.log(`${family} font loaded and added.`);
+      console.log(`${family} font loaded and added.`);
       return family;
     } catch (err) {
       console.error(`Failed to load font ${family}:`, err);
@@ -303,11 +302,11 @@ import FontPicker from "@components/FontPicker.astro";
       if (fontPickerEl) fontPickerEl.value = initialFontIdFromUrl;
       await loadAndApplyFont(initialFontIdFromUrl); // Ensure it's loaded
     } else {
-      if (fontPickerEl) fontPickerEl.value = "inter"; // Set visual default to Inter
+      if (fontPickerEl) fontPickerEl.value = "oswald"; // Set visual default to Inter
       // update() will then call loadAndApplyFont("inter") if selectedFontId becomes "inter"
       // or if the first option is chosen and loadAndApplyFont defaults.
-      // Explicitly loading inter here if it's not in URL ensures it's ready if needed by update()
-      await loadAndApplyFont("inter");
+      // Explicitly loading oswald here if it's not in URL ensures it's ready if needed by update()
+      await loadAndApplyFont("oswald");
     }
   };
 
