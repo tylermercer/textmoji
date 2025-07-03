@@ -1,6 +1,73 @@
 ---
 import Layout from "@layouts/Base.astro";
 import FontPicker from "@components/FontPicker.astro";
+
+const themes = {
+  "Oceanic (Default)": {
+    textColor: "#56f0c2",
+    bgColor: "#0b5265",
+    borderStyle: "none",
+    borderColor: "#56f0c2",
+    fontFamily: "oswald",
+  },
+  "Cyberpunk Neon": {
+    textColor: "#ffff00",
+    bgColor: "#000080",
+    borderStyle: "topBottom",
+    borderColor: "#00ffff",
+    fontFamily: "montserrat",
+  },
+  "Retro Arcade": {
+    textColor: "#ffcc00",
+    bgColor: "#1a1a1a",
+    borderStyle: "all",
+    borderColor: "#ff3300",
+    fontFamily: "josefin-sans",
+  },
+  "Stark": {
+    textColor: "#ffffff",
+    bgColor: "#000000",
+    borderStyle: "none",
+    borderColor: "#ffffff", // Not visible, but good to have a value
+    fontFamily: "oswald",
+  },
+  "Baseball": {
+    textColor: "#000080", // Navy
+    bgColor: "#ffffff",
+    borderStyle: "topBottom",
+    borderColor: "#d9534f", // Rust orange (approx)
+    fontFamily: "figtree",
+  },
+  "Terminal": {
+    textColor: "#39ff14", // Neon green
+    bgColor: "#011F01", // Very dark green
+    borderStyle: "all",
+    borderColor: "#30DB10", // Slightly darker neon green
+    fontFamily: "share-tech-mono", // New font
+  },
+  "Astro": {
+    textColor: "#ffffff",
+    bgColor: "#8A2BE2", // Purple
+    borderStyle: "topBottom",
+    borderColor: "#FF00FF", // Magenta
+    fontFamily: "raleway",
+  },
+  "Rust": {
+    textColor: "#E0E0E0", // Lighter gray
+    bgColor: "#A73030", // Redder rust
+    borderStyle: "all",
+    borderColor: "#B84040", // Slightly lighter redder rust
+    fontFamily: "montserrat",
+  },
+};
+
+const generateThemeHref = (theme: typeof themes[keyof typeof themes]) => {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(theme)) {
+    params.set(key, value);
+  }
+  return `?${params.toString()}`;
+};
 ---
 
 <Layout
@@ -21,48 +88,15 @@ import FontPicker from "@components/FontPicker.astro";
       <details>
         <summary>Presets</summary>
         <ul>
-          <li>
-            <a
-              data-preset="true"
-              href="?textColor=%2356f0c2&bgColor=%230b5265&borderStyle=none&borderColor=%2356f0c2&fontFamily=oswald"
-              >Oceanic (Default)</a
-            >
-          </li>
-          <li>
-            <a
-              data-preset="true"
-              href="?textColor=%23ff3b3b&bgColor=%23ffe600&borderStyle=all&borderColor=%23ff9500&fontFamily=figtree"
-              >Bright & Playful</a
-            >
-          </li>
-          <li>
-            <a
-              data-preset="true"
-              href="?textColor=%23ffffff&bgColor=%23000000&borderStyle=topBottom&borderColor=%23808080&fontFamily=raleway"
-              >Cool & Modern</a
-            >
-          </li>
-          <li>
-            <a
-              data-preset="true"
-              href="?textColor=%23ff00ff&bgColor=%23000080&borderStyle=topBottom&borderColor=%2300ffff&fontFamily=montserrat"
-              >Cyberpunk Neon</a
-            >
-          </li>
-          <li>
-            <a
-              data-preset="true"
-              href="?textColor=%23606060&bgColor=%23f0f0f0&borderStyle=none&borderColor=%23d0d0d0&fontFamily=barlow"
-              >Minimalist Pastel</a
-            >
-          </li>
-          <li>
-            <a
-              data-preset="true"
-              href="?textColor=%23ffcc00&bgColor=%231a1a1a&borderStyle=all&borderColor=%23ff3300&fontFamily=josefin-sans"
-              >Retro Arcade</a
-            >
-          </li>
+          {
+            Object.entries(themes).map(([name, theme]) => (
+              <li>
+                <a data-preset="true" href={generateThemeHref(theme)}>
+                  {name}
+                </a>
+              </li>
+            ))
+          }
         </ul>
       </details>
       <div class="colors l-switcher">
