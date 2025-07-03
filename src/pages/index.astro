@@ -212,7 +212,7 @@ const generateThemeHref = (theme: typeof themes[keyof typeof themes]) => {
     // Update download link
     const dataUrl = canvas.toDataURL("image/png");
     downloadLink.href = dataUrl;
-    downloadLink.download = `${text.toLowerCase().replace(/\s+/g, "-")}-${fontFamily.toLowerCase().replace(/\s+/g, "-")}.png`;
+    downloadLink.download = `${text.toLowerCase().replace(/\s+/g, "-")}.png`;
     downloadLink.style.display = "inline-block";
     downloadLink.textContent = "Download Textmoji";
   }
