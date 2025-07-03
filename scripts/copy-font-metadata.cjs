@@ -24,13 +24,13 @@ try {
   const fullMetadata = require(sourcePath); // Using require here as it's a .cjs file and source is .json
 
   const targetFontIds = [
-    'montserrat',
     'oswald',
-    'inter',
+    'figtree',
+    'montserrat',
     'eb-garamond',
     'raleway',
-    'figtree',
-    // Add other desired font IDs here
+    'josefin-sans',
+    'barlow',
   ];
 
   const filteredMetadata = {};
