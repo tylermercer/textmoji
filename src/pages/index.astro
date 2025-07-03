@@ -264,7 +264,23 @@ import FontPicker from "@components/FontPicker.astro";
       formData.get("borderStyle") as "none" | "topBottom" | "all",
       fontFamilyToUse,
     );
+
+    // Update favicon
+    const faviconUrl = canvas.toDataURL("image/png");
+    if (faviconLinkEl) {
+      faviconLinkEl.href = faviconUrl;
+      faviconLinkEl.type = "image/png";
+    } else {
+      faviconLinkEl = document.createElement("link");
+      faviconLinkEl.rel = "icon";
+      faviconLinkEl.href = faviconUrl;
+      faviconLinkEl.type = "image/png";
+      document.head.appendChild(faviconLinkEl);
+    }
   };
+
+  // Keep a reference to the favicon link element
+  let faviconLinkEl: HTMLLinkElement | null = null;
 
   form.addEventListener("input", async () => { // Removed 'e' as it's not used
     await update();
