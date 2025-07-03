@@ -31,6 +31,7 @@ try {
     'raleway',
     'josefin-sans',
     'barlow',
+    'share-tech-mono',
   ];
 
   const filteredMetadata = {};
