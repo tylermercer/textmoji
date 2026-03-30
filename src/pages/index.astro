@@ -159,7 +159,7 @@ const generateThemeHref = (theme: typeof themes[keyof typeof themes]) => {
 </style>
 
 <script>
-  import { CanvasTextWrapper } from "canvas-text-wrapper";
+  import { prepareWithSegments, layoutWithLines } from "@chenglou/pretext";
   import APIv2 from "@data/google-fonts-v2.json";
 
   const form = document.getElementById("textmojiForm") as HTMLFormElement;
@@ -197,16 +197,45 @@ const generateThemeHref = (theme: typeof themes[keyof typeof themes]) => {
     }
 
     // Draw text
+    const paddingX = 6 + (borderStyle === "all" ? 6 : 0);
+    const paddingY = 6 + (borderStyle !== "none" ? 6 : 0);
+    const maxWidth = 128 - paddingX * 2;
+    const maxHeight = 128 - paddingY * 2;
+
+    let fontSize = 128; // Start large and shrink
+    let lines: any[] = [];
+    let totalHeight = 0;
+    const fontStack = `"${fontFamily}", Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif`;
+
+    // Simple iterative search for the best font size
+    while (fontSize > 8) {
+      const font = `bold ${fontSize}px ${fontStack}`;
+      const prepared = prepareWithSegments(text, font);
+      const lineHeight = fontSize * 1.2;
+      const result = layoutWithLines(prepared, maxWidth, lineHeight);
+
+      if (result.height <= maxHeight) {
+        lines = result.lines;
+        totalHeight = result.height;
+        ctx.font = font;
+        break;
+      }
+      fontSize -= 2;
+    }
+
     ctx.fillStyle = textColor;
-    ctx.textRendering = "geometricPrecision";
-    CanvasTextWrapper(canvas, text, {
-      textAlign: "center",
-      verticalAlign: "middle",
-      sizeToFill: true,
-      paddingX: 6 + (borderStyle === "all" ? 6 : 0),
-      paddingY: 6 + (borderStyle !== "none" ? 6 : 0),
-      font: `bold 64px "${fontFamily}", Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif`,
-      renderHDPI: false,
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const startY = (128 - totalHeight) / 2;
+    const lineHeight = fontSize * 1.2;
+
+    lines.forEach((line, i) => {
+      ctx.fillText(
+        line.text,
+        128 / 2,
+        startY + i * lineHeight + lineHeight / 2
+      );
     });
 
     // Update download link
