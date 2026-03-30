@@ -11,10 +11,10 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.7",
+    "@chenglou/pretext": "^0.0.3",
     "@radix-ui/colors": "^3.0.0",
     "astro": "^5.13.5",
     "bezier-easing": "^2.1.0",
-    "canvas-text-wrapper": "^0.10.2",
     "colorjs.io": "^0.5.2",
     "google-font-metadata": "^6.0.3",
     "modern-normalize": "^3.0.1",
