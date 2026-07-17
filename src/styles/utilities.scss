@@ -116,7 +116,8 @@
             scrollbar-color: var(--u-styled-scrollbars-fg) var(--u-styled-scrollbars-bg);
             scrollbar-width: thin;
 
-            ::-webkit-scrollbar-corner &::-webkit-scrollbar {
+            &::-webkit-scrollbar-corner,
+            &::-webkit-scrollbar {
                 width: 0.5rem;
                 height: 0.5rem;
             }
